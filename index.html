@@ -31,6 +31,7 @@
     margin: 10px 0;
     background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .stats {
@@ -152,6 +153,35 @@
     animation: floatUp 0.9s forwards;
     z-index: 150;
   }
+  #music-toggle {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 50;
+    margin-top: 0;
+    padding: 8px 18px;
+    font-size: 0.9rem;
+  }
+  #restart {
+    position: fixed;
+    bottom: 16px;
+    right: 16px;
+    z-index: 50;
+    margin-top: 0;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  #restart.visible {
+    opacity: 1;
+  }
+  #music-toggle {
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+  #music-toggle.visible {
+    opacity: 1;
+  }
+
   @keyframes floatUp {
     to { transform: translateY(-50px); opacity: 0; }
   }
@@ -160,6 +190,7 @@
 <body>
 
 <h1>CUBE FIT</h1>
+<audio id="music" preload="auto"></audio>
 
 <div class="stats">
   <div>SCORE<span id="score">0</span></div>
@@ -171,7 +202,7 @@
 <div id="tray"></div>
 
 <button id="restart">New Game</button>
-
+<button id="music-toggle">Play Music</button>
 <div id="overlay">
   <h2>Game Over</h2>
   <p>Final score: <span id="final-score">0</span></p>
@@ -181,6 +212,28 @@
 <div id="dragging" style="display:none;"></div>
 
 <script>
+//SONG CREDITS:
+// ------------------------
+
+//CREDITS for song1.mp3: Music by prettyjohn1 from Pixabay. https://pixabay.com
+
+//CREDITS for song2.mp3: Music track: Jay by Lukrembo
+// Source: https://freetouse.com/music
+// No Copyright Music for Video (Free)
+
+//CREDITS for song3.mp3: Music track: Time by Avanti
+// Source: https://freetouse.com/music
+// Royalty Free Music for Videos (Safe)
+
+//CREDITS for song4.mp3: Music by SolarFLEX from Pixabay. https://pixabay.com
+// This track (song4.mp3) is registered with YouTube Content ID
+
+//CREDITS for song5.mp3: Sonder by Purrple Cat | https://purrplecat.com/
+// Music promoted by https://www.chosic.com/free-music/all/
+// Creative Commons CC BY-SA 3.0
+// https://creativecommons.org/licenses/by-sa/3.0/
+
+// ------------------------
 (function () {
   const SIZE = 8;
   const COLORS = ["#ff6b6b", "#feca57", "#48dbfb", "#1dd1a1", "#ff9ff3", "#54a0ff", "#5f27cd", "#ff9f43"];
@@ -484,7 +537,71 @@
 
   document.getElementById("restart").addEventListener("click", newGame);
   document.getElementById("play-again").addEventListener("click", newGame);
+  // Random song playback (song1.mp3 to song5.mp3)
+  const music = document.getElementById("music");
+  music.volume = 0.3;
+  const TOTAL_SONGS = 5;
+  let lastSong = -1;
+  let available = [1, 2, 3, 4, 5];
 
+  function playRandomSong() {
+    console.log("playRandomSong called. Available:", available, "Last:", lastSong);
+    if (available.length === 0) {
+      console.log("No playable songs left.");
+      return;
+    }
+    // Pick randomly, avoiding the last song if there's a choice
+    let pool = available.filter(n => n !== lastSong);
+    if (pool.length === 0) pool = available;
+    const next = pool[Math.floor(Math.random() * pool.length)];
+
+    lastSong = next;
+    music.src = `song${next}.mp3`;
+    console.log("Trying to play:", music.src);
+    music.play()
+      .then(() => console.log("Playing:", music.src))
+      .catch(err => console.log("Play failed:", err.name, err.message));
+  }
+
+  // If a file fails to load, remove it from the pool and try another
+  music.addEventListener("error", () => {
+    console.log("Load error on:", music.src, music.error);
+    const failed = parseInt(music.src.match(/song(\d+)\.mp3/)?.[1], 10);
+    available = available.filter(n => n !== failed);
+    playRandomSong();
+  });
+
+  music.addEventListener("ended", playRandomSong);
+
+  // Music toggle
+  const musicToggle = document.getElementById("music-toggle");
+  let musicOn = true;
+
+  musicToggle.addEventListener("click", () => {
+    musicOn = !musicOn;
+    if (musicOn) {
+      if (!music.src) playRandomSong();
+      else music.play().catch(() => {});
+      musicToggle.textContent = "Pause Music";
+    } else {
+      music.pause();
+      musicToggle.textContent = "Play Music";
+    }
+  });
+  // Browsers block autoplay, so start music on the first interaction
+  musicToggle.textContent = "Pause Music";
+  document.addEventListener("pointerdown", () => {
+    if (musicOn && !music.src) playRandomSong();
+  }, { once: true });
+  // Reveal both buttons only after the page is scrolled
+  const restartBtn = document.getElementById("restart");
+  const musicBtn = document.getElementById("music-toggle");
+
+  window.addEventListener("scroll", () => {
+    const scrolled = window.scrollY > 0;
+    restartBtn.classList.toggle("visible", scrolled);
+    musicBtn.classList.toggle("visible", scrolled);
+  });
   newGame();
 })();
 </script>
