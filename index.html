@@ -147,11 +147,11 @@
   .popup-score {
     position: fixed;
     font-weight: bold;
-    font-size: 1.3rem;
-    color: #feca57;
+    font-size: 2.6rem;
     pointer-events: none;
-    animation: floatUp 0.9s forwards;
+    animation: floatUp 1.8s forwards;
     z-index: 150;
+    transform: translate(-50%, -50%);
   }
   #music-toggle {
     position: fixed;
@@ -356,6 +356,9 @@
 
     // Animate then clear
     toClear.forEach(i => cells[i].classList.add("clear"));
+    const goneSfx = new Audio("gone.mp3");
+    goneSfx.volume = 0.6;
+    goneSfx.play().catch(() => {}); // silently skip if the file is missing or blocked
     const points = lines * 10 * (lines > 1 ? lines : 1);
     score += points;
     showPopup(`+${points}`);
@@ -372,11 +375,12 @@
     const el = document.createElement("div");
     el.className = "popup-score";
     el.textContent = text;
+    el.style.color = COLORS[Math.floor(Math.random() * COLORS.length)];
     const rect = boardEl.getBoundingClientRect();
     el.style.left = (rect.left + rect.width / 2) + "px";
     el.style.top = (rect.top + rect.height / 2) + "px";
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), 900);
+    setTimeout(() => el.remove(), 1800);
   }
 
   function buildPieceEl(piece, cellSize) {
