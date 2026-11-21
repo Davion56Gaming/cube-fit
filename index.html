@@ -212,7 +212,7 @@
 <div id="dragging" style="display:none;"></div>
 
 <script>
-//SONG CREDITS:
+//SONG CREDITS & AUDIO CREDITS:
 // ------------------------
 
 //CREDITS for song1.mp3: Music by prettyjohn1 from Pixabay. https://pixabay.com
@@ -232,6 +232,12 @@
 // Music promoted by https://www.chosic.com/free-music/all/
 // Creative Commons CC BY-SA 3.0
 // https://creativecommons.org/licenses/by-sa/3.0/
+
+//CREDITS for gone.mp3: Sound Effect by floraphonic from Pixabay. https://pixabay.com
+
+//CREDITS for put.mp3: Sound Effect by Luca Di Alessandro from Pixabay. https://pixabay.com
+
+//CREDITS for gameover.mp3: Sound Effect by Official Profile (or Universfield) from Pixabay. https://pixabay.com
 
 // ------------------------
 (function () {
@@ -291,7 +297,11 @@
     const color = COLORS[Math.floor(Math.random() * COLORS.length)];
     return { shape, color };
   }
-
+  function playTapSound() {
+    const putSfx = new Audio("put.mp3");
+    putSfx.volume = 0.5;
+    putSfx.play().catch(() => {});
+  }
   function newTray() {
     tray = [randomPiece(), randomPiece(), randomPiece()];
   }
@@ -299,6 +309,7 @@
   function newGame() {
     grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
     score = 0;
+    playTapSound();
     overlay.classList.remove("show");
     newTray();
     render();
@@ -452,6 +463,9 @@
     if (!anyPlayable) {
       finalScoreEl.textContent = score;
       setTimeout(() => overlay.classList.add("show"), 400);
+      const gameoverSfx = new Audio("gameover.mp3");
+      gameoverSfx.volume = 1;
+      gameoverSfx.play().catch(() => {});
     }
   }
 
@@ -529,6 +543,9 @@
       dragEl.style.display = "none";
       cleanupDrag();
       render();
+      const putSfx = new Audio("put.mp3");
+      putSfx.volume = 0.5;
+      putSfx.play().catch(() => {});
       setTimeout(() => {
         render();
         checkGameOver();
@@ -597,6 +614,7 @@
 
   musicToggle.addEventListener("click", () => {
     musicOn = !musicOn;
+    playTapSound();
     if (musicOn) {
       if (!music.src) playRandomSong();
       else music.play().catch(() => {});
